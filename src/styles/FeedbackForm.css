@@ -1,0 +1,215 @@
+.feedback-form-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.feedback-form {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 700px;
+  border: 1px solid #e1f5fe;
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 35px;
+  padding-bottom: 25px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.form-header h2 {
+  color: #1e3c72;
+  margin-bottom: 15px;
+  font-size: 2rem;
+}
+
+.form-header p {
+  color: #666;
+  margin-bottom: 25px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.progress-bar {
+  background: #e0e0e0;
+  height: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+  background: linear-gradient(135deg, #1e88e5, #1565c0);
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.question-counter {
+  color: #1e88e5;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.question-section {
+  margin-bottom: 35px;
+}
+
+.question-section h3 {
+  color: #1e3c72;
+  margin-bottom: 25px;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  padding: 15px;
+  background: #f8fbff;
+  border-radius: 10px;
+  border-left: 4px solid #1e88e5;
+}
+
+.rating-options, .yesno-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rating-option, .yesno-option {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.rating-option:hover, .yesno-option:hover {
+  border-color: #1e88e5;
+  background: #f0f8ff;
+  transform: translateX(5px);
+}
+
+.rating-option input, .yesno-option input {
+  margin: 0;
+  transform: scale(1.3);
+}
+
+.rating-option span, .yesno-option span {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.rating-option input:checked + span,
+.yesno-option input:checked + span {
+  color: #1e88e5;
+  font-weight: 600;
+}
+
+.question-section textarea {
+  width: 100%;
+  padding: 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  background: #fafafa;
+  transition: all 0.3s ease;
+  line-height: 1.5;
+}
+
+.question-section textarea:focus {
+  outline: none;
+  border-color: #1e88e5;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+}
+
+.form-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 25px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.cancel-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 15px 25px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.cancel-btn:hover {
+  background: #d32f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-btn, .submit-btn {
+  padding: 15px 25px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.nav-btn {
+  background: #6c757d;
+  color: white;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.nav-btn.next {
+  background: linear-gradient(135deg, #1e88e5, #1565c0);
+  box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
+}
+
+.nav-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #43a047, #388e3c);
+  color: white;
+  box-shadow: 0 4px 15px rgba(67, 160, 71, 0.3);
+}
+
+.nav-btn:hover:not(:disabled), .submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.nav-btn.next:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #388e3c, #2e7d32);
+}
