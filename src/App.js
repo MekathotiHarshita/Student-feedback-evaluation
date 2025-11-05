@@ -18,7 +18,7 @@ function App() {
     setCurrentUser(null);
   };
 
-  return (
+  return ( 
     <div className="App">
       {!currentUser ? (
         <Login onLogin={handleLogin} />
