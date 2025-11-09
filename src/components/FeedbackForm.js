@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 const FeedbackForm = ({ form, onSubmit, onCancel }) => {
   const [responses, setResponses] = useState({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [showReview, setShowReview] = useState(false);
 
   const handleResponseChange = (questionId, value) => {
     setResponses(prev => ({
@@ -24,9 +25,30 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
   };
 
   const handleSubmit = () => {
-    if (window.confirm('Are you sure you want to submit this feedback?')) {
-      onSubmit(form.id, responses);
+    // Validate that required questions have responses
+    const unansweredIndex = form.questions.findIndex(q => {
+      const resp = responses[q.id];
+      if (q.type === 'text') return !resp || !resp.toString().trim();
+      return resp === undefined || resp === null || resp === '';
+    });
+
+    if (unansweredIndex !== -1) {
+      setCurrentQuestion(unansweredIndex);
+      window.alert('Please answer all questions before submitting the feedback.');
+      return;
     }
+
+    // show review overlay first
+    setShowReview(true);
+  };
+
+  const confirmSubmit = () => {
+    setShowReview(false);
+    onSubmit(form.id, responses);
+  };
+
+  const cancelReview = () => {
+    setShowReview(false);
   };
 
   const renderQuestion = (question) => {
@@ -34,18 +56,24 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
       case 'rating':
         return (
           <div className="rating-options">
-            {question.options.map((option, index) => (
-              <label key={index} className="rating-option">
-                <input
-                  type="radio"
-                  name={`question-${question.id}`}
-                  value={option}
-                  checked={responses[question.id] === option}
-                  onChange={() => handleResponseChange(question.id, option)}
-                />
-                <span>{option}</span>
-              </label>
-            ))}
+            {question.options.map((option, index) => {
+              // try to derive a numeric value from the option (e.g., "1 - Poor")
+              const numeric = (option + '').trim().charAt(0);
+              const valueToStore = !isNaN(Number(numeric)) ? Number(numeric) : option;
+              return (
+                <label key={index} className="rating-option">
+                  <input
+                    type="radio"
+                    name={`question-${question.id}`}
+                    value={valueToStore}
+                    checked={responses[question.id] === valueToStore}
+                    onChange={() => handleResponseChange(question.id, valueToStore)}
+                  />
+                  <span className="rating-badge">{valueToStore}</span>
+                  <span className="rating-label">{option.replace(/^\d+\s*-\s*/,'')}</span>
+                </label>
+              );
+            })}
           </div>
         );
       
@@ -68,13 +96,33 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
         );
       
       case 'text':
+        // convert text questions into MCQ-style choices so all questions are multiple-choice
+        // prefer explicit options when provided, otherwise fall back to a 5-point scale
+        const choices = (question.options && question.options.length) ? question.options : [
+          '1 - Strongly disagree',
+          '2 - Disagree',
+          '3 - Neutral',
+          '4 - Agree',
+          '5 - Strongly agree'
+        ];
         return (
-          <textarea
-            value={responses[question.id] || ''}
-            onChange={(e) => handleResponseChange(question.id, e.target.value)}
-            placeholder="Type your response here..."
-            rows={4}
-          />
+          <div className="mcq-options">
+            {choices.map((option, idx) => {
+              const valueToStore = (idx < 5 && !isNaN(Number((option + '').trim().charAt(0)))) ? Number((option + '').trim().charAt(0)) : option;
+              return (
+                <label key={idx} className="mcq-option">
+                  <input
+                    type="radio"
+                    name={`question-${question.id}`}
+                    value={valueToStore}
+                    checked={responses[question.id] === valueToStore}
+                    onChange={() => handleResponseChange(question.id, valueToStore)}
+                  />
+                  <span className="mcq-label">{option}</span>
+                </label>
+              );
+            })}
+          </div>
         );
       
       default:
@@ -129,7 +177,7 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
                 onClick={handleSubmit}
                 className="submit-btn"
               >
-                Submit Feedback
+                Review & Submit
               </button>
             ) : (
               <button 
@@ -142,6 +190,25 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
           </div>
         </div>
       </div>
+      {showReview && (
+        <div className="review-overlay">
+          <div className="review-box">
+            <h3>Review your responses</h3>
+            <div className="review-list">
+              {form.questions.map(q => (
+                <div key={q.id} className="review-row">
+                  <strong>{q.text}</strong>
+                  <div className="review-answer">{(responses[q.id] !== undefined && responses[q.id] !== null) ? String(responses[q.id]) : '—'}</div>
+                </div>
+              ))}
+            </div>
+            <div className="review-actions">
+              <button className="cancel-btn" onClick={cancelReview}>Back</button>
+              <button className="submit-btn" onClick={confirmSubmit}>Confirm & Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

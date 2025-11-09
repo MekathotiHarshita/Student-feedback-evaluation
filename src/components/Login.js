@@ -8,6 +8,30 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
 
+  const validateCredentials = () => {
+    setError('');
+
+    if (userType === 'student') {
+      // Require a valid email for student login
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(userId)) {
+        setError('Please enter a valid student email');
+        return false;
+      }
+
+      if (!password.trim()) {
+        setError('Please enter your password');
+        return false;
+      }
+    } else {
+      if (!userId.trim() || !password.trim()) {
+        setError('Please enter both Faculty ID and Password.');
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
     
@@ -16,33 +40,38 @@ const Login = ({ onLogin }) => {
       return;
     }
 
-    // Accept ANY credentials
+    if (!validateCredentials()) {
+      return;
+    }
+
     if (userType === 'student') {
-      if (userId.trim() && password.trim()) {
-        onLogin({ 
-          id: userId, 
-          name: `Student ${userId}`, 
-          type: 'student' 
-        });
-      } else {
-        setError('Please enter both Student ID and Password.');
-      }
+      onLogin({ 
+        id: userId, 
+        name: `Student ${userId}`, 
+        type: 'student' 
+      });
     } else {
-      if (userId.trim() && password.trim()) {
-        onLogin({ 
-          id: userId, 
-          name: `Faculty ${userId}`, 
-          type: 'faculty' 
-        });
-      } else {
-        setError('Please enter both Faculty ID and Password.');
-      }
+      onLogin({ 
+        id: userId, 
+        name: `Faculty ${userId}`, 
+        type: 'faculty' 
+      });
     }
   };
 
   const handleCaptchaVerify = (verified) => {
     setIsCaptchaVerified(verified);
     if (verified) setError('');
+  };
+
+  const handleUserIdChange = (e) => {
+    setUserId(e.target.value);
+    setError('');
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    setError('');
   };
 
   return (
@@ -54,13 +83,23 @@ const Login = ({ onLogin }) => {
         <div className="user-type-selector">
           <button 
             className={`type-btn ${userType === 'student' ? 'active' : ''}`}
-            onClick={() => setUserType('student')}
+            onClick={() => {
+              setUserType('student');
+              setError('');
+              setUserId('');
+              setPassword('');
+            }}
           >
             Student Login
           </button>
           <button 
             className={`type-btn ${userType === 'faculty' ? 'active' : ''}`}
-            onClick={() => setUserType('faculty')}
+            onClick={() => {
+              setUserType('faculty');
+              setError('');
+              setUserId('');
+              setPassword('');
+            }}
           >
             Faculty Login
           </button>
@@ -74,14 +113,19 @@ const Login = ({ onLogin }) => {
 
         <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
-            <label>{userType === 'student' ? 'Student ID' : 'Faculty ID'}</label>
+            <label>{userType === 'student' ? 'Student Email' : 'Faculty ID'}</label>
             <input
               type="text"
               value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder={`Enter your ${userType} ID`}
+              onChange={handleUserIdChange}
+              placeholder={userType === 'student' ? 'Enter your student email' : 'Enter your Faculty ID'}
               required
             />
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
           </div>
 
           <div className="form-group">
@@ -89,7 +133,7 @@ const Login = ({ onLogin }) => {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
               placeholder="Enter your password"
               required
             />
@@ -100,7 +144,9 @@ const Login = ({ onLogin }) => {
             <Captcha onVerify={handleCaptchaVerify} />
           </div>
 
-          {error && <div className="error-message">{error}</div>}
+          {error && error !== 'Invalid User ID' && (
+            <div className="error-message">{error}</div>
+          )}
 
           <button 
             type="submit" 

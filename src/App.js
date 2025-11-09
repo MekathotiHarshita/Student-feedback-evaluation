@@ -18,14 +18,19 @@ function App() {
     setCurrentUser(null);
   };
 
+  const switchDashboard = (type) => {
+    if (!currentUser) return;
+    setCurrentUser({ ...currentUser, type });
+  };
+
   return ( 
     <div className="App">
       {!currentUser ? (
         <Login onLogin={handleLogin} />
       ) : currentUser.type === 'student' ? (
-        <StudentDashboard user={currentUser} onLogout={handleLogout} />
+        <StudentDashboard user={currentUser} onLogout={handleLogout} onSwitchDashboard={switchDashboard} />
       ) : (
-        <FacultyDashboard user={currentUser} onLogout={handleLogout} />
+        <FacultyDashboard user={currentUser} onLogout={handleLogout} onSwitchDashboard={switchDashboard} />
       )}
     </div>
   );
