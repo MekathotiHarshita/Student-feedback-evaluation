@@ -4,8 +4,10 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
   const [responses, setResponses] = useState({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showReview, setShowReview] = useState(false);
+  const [error, setError] = useState('');
 
   const handleResponseChange = (questionId, value) => {
+    setError('');
     setResponses(prev => ({
       ...prev,
       [questionId]: value
@@ -13,6 +15,13 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
   };
 
   const handleNext = () => {
+    const currentResp = responses[form.questions[currentQuestion].id];
+    if (currentResp === undefined || currentResp === null || currentResp === '') {
+      setError('Please answer this question before proceeding.');
+      return;
+    }
+    
+    setError('');
     if (currentQuestion < form.questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     }
@@ -25,20 +34,24 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
   };
 
   const handleSubmit = () => {
-    // Validate that required questions have responses
-    const unansweredIndex = form.questions.findIndex(q => {
-      const resp = responses[q.id];
-      if (q.type === 'text') return !resp || !resp.toString().trim();
-      return resp === undefined || resp === null || resp === '';
-    });
-
-    if (unansweredIndex !== -1) {
-      setCurrentQuestion(unansweredIndex);
-      window.alert('Please answer all questions before submitting the feedback.');
+    const currentResp = responses[form.questions[currentQuestion].id];
+    if (currentResp === undefined || currentResp === null || currentResp === '') {
+      setError('Please answer this question before submitting.');
       return;
     }
 
-    // show review overlay first
+    // Check if all questions are answered
+    const unansweredQuestions = form.questions.filter(q => {
+      const resp = responses[q.id];
+      return resp === undefined || resp === null || resp === '';
+    });
+
+    if (unansweredQuestions.length > 0) {
+      setError(`Please complete all questions. ${unansweredQuestions.length} question(s) remaining.`);
+      return;
+    }
+
+    setError('');
     setShowReview(true);
   };
 
@@ -56,32 +69,29 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
       case 'rating':
         return (
           <div className="rating-options">
-            {question.options.map((option, index) => {
-              // try to derive a numeric value from the option (e.g., "1 - Poor")
-              const numeric = (option + '').trim().charAt(0);
-              const valueToStore = !isNaN(Number(numeric)) ? Number(numeric) : option;
-              return (
-                <label key={index} className="rating-option">
-                  <input
-                    type="radio"
-                    name={`question-${question.id}`}
-                    value={valueToStore}
-                    checked={responses[question.id] === valueToStore}
-                    onChange={() => handleResponseChange(question.id, valueToStore)}
-                  />
-                  <span className="rating-badge">{valueToStore}</span>
-                  <span className="rating-label">{option.replace(/^\d+\s*-\s*/,'')}</span>
-                </label>
-              );
-            })}
+            {[1, 2, 3, 4, 5].map(rating => (
+              <label key={rating} className="rating-option">
+                <input
+                  type="radio"
+                  name={`question-${question.id}`}
+                  value={rating}
+                  checked={responses[question.id] === rating}
+                  onChange={() => handleResponseChange(question.id, rating)}
+                />
+                <span className="rating-number">{rating}</span>
+                <span className="rating-text">
+                  {rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : 'Excellent'}
+                </span>
+              </label>
+            ))}
           </div>
         );
       
       case 'yesno':
         return (
           <div className="yesno-options">
-            {question.options.map((option, index) => (
-              <label key={index} className="yesno-option">
+            {['Yes', 'No'].map(option => (
+              <label key={option} className="yesno-option">
                 <input
                   type="radio"
                   name={`question-${question.id}`}
@@ -96,32 +106,23 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
         );
       
       case 'text':
-        // convert text questions into MCQ-style choices so all questions are multiple-choice
-        // prefer explicit options when provided, otherwise fall back to a 5-point scale
-        const choices = (question.options && question.options.length) ? question.options : [
-          '1 - Strongly disagree',
-          '2 - Disagree',
-          '3 - Neutral',
-          '4 - Agree',
-          '5 - Strongly agree'
-        ];
         return (
-          <div className="mcq-options">
-            {choices.map((option, idx) => {
-              const valueToStore = (idx < 5 && !isNaN(Number((option + '').trim().charAt(0)))) ? Number((option + '').trim().charAt(0)) : option;
-              return (
-                <label key={idx} className="mcq-option">
-                  <input
-                    type="radio"
-                    name={`question-${question.id}`}
-                    value={valueToStore}
-                    checked={responses[question.id] === valueToStore}
-                    onChange={() => handleResponseChange(question.id, valueToStore)}
-                  />
-                  <span className="mcq-label">{option}</span>
-                </label>
-              );
-            })}
+          <div className="rating-options">
+            {[1, 2, 3, 4, 5].map(rating => (
+              <label key={rating} className="rating-option">
+                <input
+                  type="radio"
+                  name={`question-${question.id}`}
+                  value={rating}
+                  checked={responses[question.id] === rating}
+                  onChange={() => handleResponseChange(question.id, rating)}
+                />
+                <span className="rating-number">{rating}</span>
+                <span className="rating-text">
+                  {rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : 'Excellent'}
+                </span>
+              </label>
+            ))}
           </div>
         );
       
@@ -152,6 +153,7 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
 
         <div className="question-section">
           <h3>{currentQ.text}</h3>
+          {error && <div className="error-message">{error}</div>}
           {renderQuestion(currentQ)}
         </div>
 

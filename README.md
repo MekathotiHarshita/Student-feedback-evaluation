@@ -1,74 +1,124 @@
-# Getting Started with Create React App
+# Student Feedback System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive web application for collecting and analyzing student feedback on courses, instructors, and institutional services.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+### For Students
+- **Secure Login** - Email-based authentication with captcha verification
+- **Interactive Feedback Forms** - Multi-step forms with rating scales, yes/no questions, and multiple choice
+- **Progress Tracking** - Visual progress indicators and question counters
+- **Review & Submit** - Review all responses before final submission
+- **Dashboard** - View pending and completed feedback forms
+- **Profile Management** - Update personal information and preferences
 
-### `npm start`
+### For Faculty/Admin
+- **Analytics Dashboard** - View aggregated feedback data and ratings
+- **Course Management** - Assign courses and manage student sections
+- **Form Builder** - Create custom feedback forms with different question types
+- **Data Visualization** - Rating analysis charts and completion statistics
+- **Detailed Feedback** - Access individual responses and comments
+- **Profile Management** - Update faculty information and department details
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser by default.
+## Technology Stack
 
-If you prefer the app to run on port 5173 (for example to match other tooling), a `.env` file has been added that sets the PORT to 5173. With the included `.env` the dev server will open at:
+- **Frontend**: React.js
+- **Styling**: CSS3 with modern design patterns
+- **Data**: JSON-based data structure
+- **Authentication**: Form-based with captcha verification
 
-Open http://localhost:5173 to view it in your browser.
+## Getting Started
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-### `npm test`
+2. **Start Development Server**
+   ```bash
+   npm start
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+3. **Access the Application**
+   - Open http://localhost:5173 in your browser
+   - Choose Student or Faculty login
+   - Use any email format for students
+   - Use any ID for faculty
 
-### `npm run build`
+## Project Structure
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+src/
+├── components/
+│   ├── Login.js              # Authentication component
+│   ├── StudentDashboard.js   # Student interface
+│   ├── FacultyDashboard.js   # Faculty/Admin interface
+│   ├── FeedbackForm.js       # Multi-step feedback form
+│   ├── FormBuilder.js        # Admin form creation tool
+│   └── Captcha.js           # Security verification
+├── data/
+│   └── feedback-data.json    # Sample data structure
+├── styles/
+│   ├── App.css              # Global styles
+│   ├── Login.css            # Authentication styles
+│   ├── Dashboard.css        # Dashboard layouts
+│   ├── FeedbackForm.css     # Form styling
+│   ├── FormBuilder.css      # Form builder styles
+│   └── Captcha.css          # Captcha component styles
+└── App.js                   # Main application component
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Key Components
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Authentication System
+- Dual login interface for students and faculty
+- Email validation for students
+- Captcha verification for security
+- Session management with user profiles
 
-### `npm run eject`
+### Feedback Collection
+- Multi-step form interface with progress tracking
+- Support for rating scales (1-5), yes/no questions, and multiple choice
+- Response validation and review system
+- Automatic form completion tracking
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Analytics & Reporting
+- Real-time feedback aggregation
+- Course-wise rating analysis
+- Student participation tracking
+- Visual data representation with charts
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Form Management
+- Dynamic form builder for creating custom surveys
+- Question type selection (rating, yes/no, multiple choice)
+- Form assignment to courses and instructors
+- Form lifecycle management
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Data Structure
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+The system uses a JSON-based data structure with:
+- **Courses**: Feedback data organized by course name
+- **Pending Forms**: Active feedback forms awaiting responses
+- **Completed Forms**: Historical feedback submissions
+- **User Profiles**: Student and faculty information
 
-## Learn More
+## Customization
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The system is designed to be easily customizable:
+- Modify question types in FormBuilder component
+- Adjust styling through CSS files
+- Extend data structure in feedback-data.json
+- Add new dashboard features in respective components
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Future Enhancements
 
-### Code Splitting
+- Database integration for persistent data storage
+- Advanced analytics with trend analysis
+- Email notifications for pending feedback
+- Export functionality for reports
+- Mobile-responsive design improvements
+- Multi-language support
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## License
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is created for educational purposes and institutional use.

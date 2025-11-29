@@ -3,9 +3,6 @@ import Login from './components/Login';
 import StudentDashboard from './components/StudentDashboard';
 import FacultyDashboard from './components/FacultyDashboard';
 import './styles/App.css';
-import './styles/Login.css';
-import './styles/Dashboard.css';
-import './styles/FeedbackForm.css';  // Make sure this line is here
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -18,19 +15,14 @@ function App() {
     setCurrentUser(null);
   };
 
-  const switchDashboard = (type) => {
-    if (!currentUser) return;
-    setCurrentUser({ ...currentUser, type });
-  };
-
-  return ( 
+  return (
     <div className="App">
       {!currentUser ? (
         <Login onLogin={handleLogin} />
       ) : currentUser.type === 'student' ? (
-        <StudentDashboard user={currentUser} onLogout={handleLogout} onSwitchDashboard={switchDashboard} />
+        <StudentDashboard user={currentUser} onLogout={handleLogout} />
       ) : (
-        <FacultyDashboard user={currentUser} onLogout={handleLogout} onSwitchDashboard={switchDashboard} />
+        <FacultyDashboard user={currentUser} onLogout={handleLogout} />
       )}
     </div>
   );

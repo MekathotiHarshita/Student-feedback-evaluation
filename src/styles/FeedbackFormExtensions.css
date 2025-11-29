@@ -1,0 +1,59 @@
+.mcq-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mcq-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #eef2f6;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  background: #ffffff;
+}
+
+.mcq-option:hover {
+  border-color: #cfe9ff;
+  background: #fbfcfd;
+  transform: translateY(-2px);
+}
+
+.mcq-option input {
+  margin: 0;
+  transform: scale(1.3);
+}
+
+.mcq-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+}
+
+.rating-badge {
+  background: #0b2440;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 50%;
+  font-weight: 600;
+  min-width: 24px;
+  text-align: center;
+}
+
+.rating-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+}
+
+.rating-option input:checked + .rating-badge {
+  background: #1e88e5;
+}
+
+.mcq-option input:checked + .mcq-label {
+  color: #1e88e5;
+  font-weight: 600;
+}

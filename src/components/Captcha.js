@@ -5,50 +5,108 @@ const Captcha = ({ onVerify }) => {
   const [userInput, setUserInput] = useState('');
   const [isVerified, setIsVerified] = useState(false);
 
+  const generateCaptcha = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let result = '';
+    for (let i = 0; i < 5; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaText(result);
+    setUserInput('');
+    setIsVerified(false);
+    onVerify(false);
+  };
+
   useEffect(() => {
     generateCaptcha();
   }, []);
 
-  const generateCaptcha = () => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    setCaptchaText(result);
-    setIsVerified(false);
-    setUserInput('');
-  };
-
-  const handleVerify = () => {
-    if (userInput === captchaText) {
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setUserInput(value);
+    
+    if (value === captchaText) {
       setIsVerified(true);
       onVerify(true);
     } else {
-      alert('Captcha verification failed. Please try again.');
-      generateCaptcha();
+      setIsVerified(false);
+      onVerify(false);
     }
   };
 
   return (
-    <div className="captcha-container">
-      <div className="captcha-display">
-        <span className="captcha-text">{captchaText}</span>
-        <button type="button" onClick={generateCaptcha} className="refresh-btn">
-          ↻
+    <div style={{ marginBottom: '20px' }}>
+      <label style={{ 
+        display: 'block', 
+        marginBottom: '8px', 
+        fontWeight: '600', 
+        color: '#1e293b',
+        fontSize: '0.95rem'
+      }}>
+        Security Verification
+      </label>
+      
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
+        <div style={{
+          background: '#f3f4f6',
+          border: '2px solid #e5e7eb',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          fontFamily: 'monospace',
+          fontSize: '1.2rem',
+          fontWeight: 'bold',
+          letterSpacing: '3px',
+          color: '#374151',
+          textDecoration: 'line-through',
+          minWidth: '120px',
+          textAlign: 'center'
+        }}>
+          {captchaText}
+        </div>
+        
+        <button
+          type="button"
+          onClick={generateCaptcha}
+          style={{
+            background: '#6b7280',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            cursor: 'pointer',
+            fontSize: '0.8rem'
+          }}
+        >
+          Refresh
         </button>
       </div>
+      
       <input
         type="text"
         value={userInput}
-        onChange={(e) => setUserInput(e.target.value)}
-        placeholder="Enter captcha"
-        className="captcha-input"
+        onChange={handleInputChange}
+        placeholder="Enter the text above"
+        style={{
+          width: '100%',
+          padding: '12px 16px',
+          border: `2px solid ${isVerified ? '#10b981' : '#e5e7eb'}`,
+          borderRadius: '8px',
+          fontSize: '1rem',
+          boxSizing: 'border-box',
+          backgroundColor: isVerified ? '#f0fdf4' : 'white'
+        }}
       />
-      <button type="button" onClick={handleVerify} className="verify-btn">
-        Verify Captcha
-      </button>
-      {isVerified && <span className="verified">✓ Verified</span>}
+      
+      {isVerified && (
+        <div style={{
+          color: '#10b981',
+          fontSize: '0.85rem',
+          marginTop: '5px',
+          fontWeight: '500'
+        }}>
+          ✓ Verification successful
+        </div>
+      )}
     </div>
   );
 };
