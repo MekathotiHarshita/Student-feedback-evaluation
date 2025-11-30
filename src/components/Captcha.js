@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../styles/Captcha.css';
 
 const Captcha = ({ onVerify }) => {
   const [captchaText, setCaptchaText] = useState('');
@@ -6,9 +7,9 @@ const Captcha = ({ onVerify }) => {
   const [isVerified, setIsVerified] = useState(false);
 
   const generateCaptcha = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setCaptchaText(result);
@@ -22,7 +23,7 @@ const Captcha = ({ onVerify }) => {
   }, []);
 
   const handleInputChange = (e) => {
-    const value = e.target.value;
+    const value = e.target.value.toUpperCase();
     setUserInput(value);
     
     if (value === captchaText) {
@@ -35,76 +36,32 @@ const Captcha = ({ onVerify }) => {
   };
 
   return (
-    <div style={{ marginBottom: '20px' }}>
-      <label style={{ 
-        display: 'block', 
-        marginBottom: '8px', 
-        fontWeight: '600', 
-        color: '#1e293b',
-        fontSize: '0.95rem'
-      }}>
-        Security Verification
-      </label>
-      
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
-        <div style={{
-          background: '#f3f4f6',
-          border: '2px solid #e5e7eb',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          fontFamily: 'monospace',
-          fontSize: '1.2rem',
-          fontWeight: 'bold',
-          letterSpacing: '3px',
-          color: '#374151',
-          textDecoration: 'line-through',
-          minWidth: '120px',
-          textAlign: 'center'
-        }}>
-          {captchaText}
+    <div className="captcha-container">
+      <label className="captcha-label">Security Verification</label>
+      <div className="captcha-box">
+        <div className="captcha-display">
+          <span className="captcha-text">{captchaText}</span>
+          <button 
+            type="button" 
+            className="refresh-btn"
+            onClick={generateCaptcha}
+            title="Refresh Captcha"
+          >
+            ↻
+          </button>
         </div>
-        
-        <button
-          type="button"
-          onClick={generateCaptcha}
-          style={{
-            background: '#6b7280',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            padding: '8px 12px',
-            cursor: 'pointer',
-            fontSize: '0.8rem'
-          }}
-        >
-          Refresh
-        </button>
+        <input
+          type="text"
+          value={userInput}
+          onChange={handleInputChange}
+          placeholder="Enter captcha"
+          className={`captcha-input ${isVerified ? 'verified' : ''}`}
+          maxLength={6}
+        />
       </div>
-      
-      <input
-        type="text"
-        value={userInput}
-        onChange={handleInputChange}
-        placeholder="Enter the text above"
-        style={{
-          width: '100%',
-          padding: '12px 16px',
-          border: `2px solid ${isVerified ? '#10b981' : '#e5e7eb'}`,
-          borderRadius: '8px',
-          fontSize: '1rem',
-          boxSizing: 'border-box',
-          backgroundColor: isVerified ? '#f0fdf4' : 'white'
-        }}
-      />
-      
       {isVerified && (
-        <div style={{
-          color: '#10b981',
-          fontSize: '0.85rem',
-          marginTop: '5px',
-          fontWeight: '500'
-        }}>
-          ✓ Verification successful
+        <div className="verification-success">
+          ✓ Verified
         </div>
       )}
     </div>
