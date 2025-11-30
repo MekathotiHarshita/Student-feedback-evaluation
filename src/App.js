@@ -5,24 +5,26 @@ import FacultyDashboard from './components/FacultyDashboard';
 import './styles/App.css';
 
 function App() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [user, setUser] = useState(null);
 
-  const handleLogin = (user) => {
-    setCurrentUser(user);
+  const handleLogin = (userData) => {
+    setUser(userData);
   };
 
   const handleLogout = () => {
-    setCurrentUser(null);
+    setUser(null);
   };
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <div className="App">
-      {!currentUser ? (
-        <Login onLogin={handleLogin} />
-      ) : currentUser.type === 'student' ? (
-        <StudentDashboard user={currentUser} onLogout={handleLogout} />
+      {user.type === 'student' ? (
+        <StudentDashboard user={user} onLogout={handleLogout} />
       ) : (
-        <FacultyDashboard user={currentUser} onLogout={handleLogout} />
+        <FacultyDashboard user={user} onLogout={handleLogout} />
       )}
     </div>
   );

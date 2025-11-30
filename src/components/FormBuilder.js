@@ -1,340 +1,490 @@
 import React, { useState } from 'react';
+import '../styles/FormBuilder.css';
 
-const FormBuilder = ({ onSave, onCancel, editForm }) => {
-  const [form, setForm] = useState(editForm || {
+const FormBuilder = ({ onBack }) => {
+  const [formData, setFormData] = useState({
     title: '',
     description: '',
     course: '',
-    instructor: '',
+    dueDate: '',
     questions: []
   });
-
+  
   const [currentQuestion, setCurrentQuestion] = useState({
     text: '',
-    type: 'rating'
+    type: 'rating',
+    options: [],
+    required: true
   });
+  
+  const [showPreview, setShowPreview] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(-1);
+
+  const questionTypes = [
+    { value: 'rating', label: '⭐ Rating Scale (1-5)', defaultOptions: ['1 - Poor', '2 - Fair', '3 - Good', '4 - Very Good', '5 - Excellent'] },
+    { value: 'yesno', label: '✓ Yes/No Question', defaultOptions: ['Yes', 'No'] },
+    { value: 'text', label: '📝 Multiple Choice', defaultOptions: ['Option 1', 'Option 2', 'Option 3'] }
+  ];
+
+  const courses = ['Mathematics', 'Computer Science', 'Physics', 'English', 'Chemistry', 'Biology', 'History'];
+
+  const handleFormChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleQuestionChange = (field, value) => {
+    setCurrentQuestion(prev => ({
+      ...prev,
+      [field]: value,
+      ...(field === 'type' && { options: questionTypes.find(t => t.value === value)?.defaultOptions || [] })
+    }));
+  };
+
+  const handleOptionChange = (index, value) => {
+    const newOptions = [...currentQuestion.options];
+    newOptions[index] = value;
+    setCurrentQuestion(prev => ({
+      ...prev,
+      options: newOptions
+    }));
+  };
+
+  const addOption = () => {
+    setCurrentQuestion(prev => ({
+      ...prev,
+      options: [...prev.options, `Option ${prev.options.length + 1}`]
+    }));
+  };
+
+  const removeOption = (index) => {
+    if (currentQuestion.options.length > 2) {
+      const newOptions = currentQuestion.options.filter((_, i) => i !== index);
+      setCurrentQuestion(prev => ({
+        ...prev,
+        options: newOptions
+      }));
+    }
+  };
 
   const addQuestion = () => {
-    if (!currentQuestion.text.trim()) return;
-    
-    setForm(prev => ({
-      ...prev,
-      questions: [...prev.questions, { 
-        ...currentQuestion, 
-        id: Date.now() 
-      }]
-    }));
-    
-    setCurrentQuestion({ text: '', type: 'rating' });
-  };
-
-  const removeQuestion = (index) => {
-    setForm(prev => ({
-      ...prev,
-      questions: prev.questions.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleSave = () => {
-    if (!form.title.trim() || !form.course.trim() || form.questions.length === 0) {
-      alert('Please fill in all required fields and add at least one question.');
+    if (!currentQuestion.text.trim()) {
+      alert('Please enter a question text');
       return;
     }
-    
-    onSave({
-      ...form,
-      id: Date.now(),
-      date: `Due: ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}`
+
+    const newQuestion = {
+      ...currentQuestion,
+      id: Date.now()
+    };
+
+    if (isEditing) {
+      const updatedQuestions = [...formData.questions];
+      updatedQuestions[editingIndex] = newQuestion;
+      setFormData(prev => ({
+        ...prev,
+        questions: updatedQuestions
+      }));
+      setIsEditing(false);
+      setEditingIndex(-1);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        questions: [...prev.questions, newQuestion]
+      }));
+    }
+
+    resetCurrentQuestion();
+  };
+
+  const editQuestion = (index) => {
+    setCurrentQuestion(formData.questions[index]);
+    setIsEditing(true);
+    setEditingIndex(index);
+  };
+
+  const deleteQuestion = (index) => {
+    if (window.confirm('Are you sure you want to delete this question?')) {
+      const updatedQuestions = formData.questions.filter((_, i) => i !== index);
+      setFormData(prev => ({
+        ...prev,
+        questions: updatedQuestions
+      }));
+    }
+  };
+
+  const resetCurrentQuestion = () => {
+    setCurrentQuestion({
+      text: '',
+      type: 'rating',
+      options: ['1 - Poor', '2 - Fair', '3 - Good', '4 - Very Good', '5 - Excellent'],
+      required: true
     });
   };
 
+  const saveForm = () => {
+    if (!formData.title.trim()) {
+      alert('Please enter a form title');
+      return;
+    }
+    if (!formData.course) {
+      alert('Please select a course');
+      return;
+    }
+    if (formData.questions.length === 0) {
+      alert('Please add at least one question');
+      return;
+    }
+
+    // Save to localStorage (in a real app, this would be an API call)
+    const savedForms = JSON.parse(localStorage.getItem('customForms') || '[]');
+    const newForm = {
+      ...formData,
+      id: `form-${Date.now()}`,
+      created: new Date().toISOString().split('T')[0],
+      status: 'draft'
+    };
+    
+    savedForms.push(newForm);
+    localStorage.setItem('customForms', JSON.stringify(savedForms));
+
+    alert('Form saved successfully!');
+    onBack();
+  };
+
+  const previewForm = () => {
+    if (formData.questions.length === 0) {
+      alert('Please add at least one question to preview');
+      return;
+    }
+    setShowPreview(true);
+  };
+
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '30px' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div className="form-builder-container">
+      <div className="form-builder">
         {/* Header */}
-        <div style={{ 
-          background: 'white', 
-          padding: '30px', 
-          borderRadius: '16px', 
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          marginBottom: '30px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
-            <div style={{ 
-              width: '50px', 
-              height: '50px', 
-              background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.5rem'
-            }}>
-              📝
+        <header className="builder-header">
+          <div className="header-content">
+            <div className="header-left">
+              <button onClick={onBack} className="back-btn">
+                <span className="back-icon">←</span>
+                Back to Forms
+              </button>
+              <div className="header-title">
+                <h1>Form Builder</h1>
+                <p>Create custom feedback forms with advanced question types</p>
+              </div>
             </div>
-            <div>
-              <h2 style={{ margin: '0', color: '#1e293b', fontSize: '1.6rem', fontWeight: '700' }}>
-                {editForm ? 'Edit Feedback Form' : 'Create New Feedback Form'}
+            <div className="header-actions">
+              <button onClick={previewForm} className="preview-btn">
+                <span className="btn-icon">👁️</span>
+                Preview
+              </button>
+              <button onClick={saveForm} className="save-btn">
+                <span className="btn-icon">💾</span>
+                Save Form
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div className="builder-content">
+          {/* Form Settings */}
+          <section className="form-settings">
+            <div className="settings-card">
+              <h2>Form Settings</h2>
+              <div className="settings-grid">
+                <div className="form-group">
+                  <label htmlFor="title">Form Title *</label>
+                  <input
+                    id="title"
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => handleFormChange('title', e.target.value)}
+                    placeholder="e.g., Mid-Semester Course Evaluation"
+                    className="form-input"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="course">Course *</label>
+                  <select
+                    id="course"
+                    value={formData.course}
+                    onChange={(e) => handleFormChange('course', e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="">Select a course</option>
+                    {courses.map(course => (
+                      <option key={course} value={course}>{course}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="description">Description</label>
+                  <textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => handleFormChange('description', e.target.value)}
+                    placeholder="Brief description of this evaluation form"
+                    className="form-textarea"
+                    rows="3"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="dueDate">Due Date</label>
+                  <input
+                    id="dueDate"
+                    type="date"
+                    value={formData.dueDate}
+                    onChange={(e) => handleFormChange('dueDate', e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Question Builder */}
+          <section className="question-builder">
+            <div className="builder-card">
+              <h2>
+                {isEditing ? 'Edit Question' : 'Add New Question'}
+                <span className="question-count">({formData.questions.length} questions added)</span>
               </h2>
-              <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '1rem' }}>
-                Design comprehensive feedback forms for student evaluation
-              </p>
-            </div>
-          </div>
-        </div>
+              
+              <div className="question-form">
+                <div className="form-group">
+                  <label htmlFor="questionText">Question Text *</label>
+                  <textarea
+                    id="questionText"
+                    value={currentQuestion.text}
+                    onChange={(e) => handleQuestionChange('text', e.target.value)}
+                    placeholder="Enter your question here..."
+                    className="form-textarea"
+                    rows="2"
+                  />
+                </div>
 
-        {/* Form Details */}
-        <div style={{ 
-          background: 'white', 
-          padding: '30px', 
-          borderRadius: '16px', 
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          marginBottom: '30px'
-        }}>
-          <h3 style={{ margin: '0 0 20px 0', color: '#1e293b', fontSize: '1.2rem', fontWeight: '600' }}>Form Information</h3>
+                <div className="form-group">
+                  <label htmlFor="questionType">Question Type</label>
+                  <select
+                    id="questionType"
+                    value={currentQuestion.type}
+                    onChange={(e) => handleQuestionChange('type', e.target.value)}
+                    className="form-select"
+                  >
+                    {questionTypes.map(type => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
+                    ))}
+                  </select>
+                </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontWeight: '600', color: '#1e293b', fontSize: '0.95rem', marginBottom: '8px' }}>Form Title *</label>
-            <input
-              type="text"
-              placeholder="e.g., Mathematics - Calculus I Feedback"
-              value={form.title}
-              onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
-              style={{ 
-                width: '100%', 
-                padding: '15px 20px', 
-                border: '2px solid #e5e7eb', 
-                borderRadius: '12px', 
-                fontSize: '1rem', 
-                boxSizing: 'border-box',
-                transition: 'border-color 0.2s'
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontWeight: '600', color: '#1e293b', fontSize: '0.95rem', marginBottom: '8px' }}>Description</label>
-            <textarea
-              placeholder="Provide a brief description of this feedback form..."
-              value={form.description}
-              onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-              style={{ 
-                width: '100%', 
-                padding: '15px 20px', 
-                border: '2px solid #e5e7eb', 
-                borderRadius: '12px', 
-                fontSize: '1rem', 
-                height: '100px', 
-                resize: 'vertical', 
-                boxSizing: 'border-box',
-                transition: 'border-color 0.2s'
-              }}
-            />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontWeight: '600', color: '#1e293b', fontSize: '0.95rem', marginBottom: '8px' }}>Course Code *</label>
-              <input
-                type="text"
-                placeholder="e.g., MATH101, CS202"
-                value={form.course}
-                onChange={(e) => setForm(prev => ({ ...prev, course: e.target.value }))}
-                style={{ 
-                  width: '100%',
-                  padding: '15px 20px', 
-                  border: '2px solid #e5e7eb', 
-                  borderRadius: '12px', 
-                  fontSize: '1rem', 
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.2s'
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontWeight: '600', color: '#1e293b', fontSize: '0.95rem', marginBottom: '8px' }}>Instructor Name</label>
-              <input
-                type="text"
-                placeholder="e.g., Dr. Smith"
-                value={form.instructor}
-                onChange={(e) => setForm(prev => ({ ...prev, instructor: e.target.value }))}
-                style={{ 
-                  width: '100%',
-                  padding: '15px 20px', 
-                  border: '2px solid #e5e7eb', 
-                  borderRadius: '12px', 
-                  fontSize: '1rem', 
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.2s'
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Question Builder */}
-        <div style={{ 
-          background: 'white', 
-          padding: '30px', 
-          borderRadius: '16px', 
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          marginBottom: '30px'
-        }}>
-
-          <h3 style={{ margin: '0 0 20px 0', color: '#1e293b', fontSize: '1.2rem', fontWeight: '600' }}>Question Builder</h3>
-          <div style={{ background: '#f8fafc', padding: '25px', borderRadius: '12px', marginBottom: '25px', border: '1px solid #e5e7eb' }}>
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', fontWeight: '600', color: '#1e293b', fontSize: '0.95rem', marginBottom: '8px' }}>Question Text *</label>
-              <input
-                type="text"
-                placeholder="e.g., Rate the overall teaching quality"
-                value={currentQuestion.text}
-                onChange={(e) => setCurrentQuestion(prev => ({ ...prev, text: e.target.value }))}
-                style={{ 
-                  width: '100%', 
-                  padding: '15px 20px', 
-                  border: '2px solid #e5e7eb', 
-                  borderRadius: '10px', 
-                  fontSize: '1rem', 
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.2s'
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontWeight: '600', color: '#1e293b', fontSize: '0.95rem', marginBottom: '8px' }}>Question Type</label>
-              <select
-                value={currentQuestion.type}
-                onChange={(e) => setCurrentQuestion(prev => ({ ...prev, type: e.target.value }))}
-                style={{ 
-                  width: '100%', 
-                  padding: '15px 20px', 
-                  border: '2px solid #e5e7eb', 
-                  borderRadius: '10px', 
-                  fontSize: '1rem', 
-                  boxSizing: 'border-box',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="rating">⭐ Rating Scale (1-5)</option>
-                <option value="yesno">✅ Yes/No Question</option>
-              </select>
-            </div>
-            <button 
-              onClick={addQuestion}
-              style={{ 
-                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', 
-                color: 'white', 
-                border: 'none', 
-                padding: '12px 24px', 
-                borderRadius: '10px', 
-                cursor: 'pointer', 
-                fontWeight: '600',
-                fontSize: '0.95rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              ➕ Add Question
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h4 style={{ margin: '0', color: '#1e293b', fontSize: '1.1rem', fontWeight: '600' }}>Added Questions ({form.questions.length})</h4>
-          </div>
-          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            {form.questions.map((q, index) => (
-              <div key={q.id} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                padding: '15px 20px', 
-                background: 'white', 
-                border: '1px solid #e5e7eb', 
-                borderRadius: '10px', 
-                marginBottom: '10px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-              }}>
-                <div>
-                  <span style={{ fontWeight: '600', color: '#1e293b' }}>{index + 1}. {q.text}</span>
-                  <div style={{ 
-                    display: 'inline-block',
-                    marginLeft: '10px',
-                    padding: '2px 8px',
-                    background: q.type === 'rating' ? '#eff6ff' : '#f0fdf4',
-                    color: q.type === 'rating' ? '#1d4ed8' : '#166534',
-                    borderRadius: '12px',
-                    fontSize: '0.8rem',
-                    fontWeight: '500'
-                  }}>
-                    {q.type === 'rating' ? '⭐ Rating' : '✅ Yes/No'}
+                {/* Options Editor */}
+                <div className="form-group">
+                  <label>Answer Options</label>
+                  <div className="options-editor">
+                    {currentQuestion.options.map((option, index) => (
+                      <div key={index} className="option-row">
+                        <input
+                          type="text"
+                          value={option}
+                          onChange={(e) => handleOptionChange(index, e.target.value)}
+                          className="option-input"
+                          placeholder={`Option ${index + 1}`}
+                        />
+                        {currentQuestion.options.length > 2 && (
+                          <button
+                            type="button"
+                            onClick={() => removeOption(index)}
+                            className="remove-option-btn"
+                          >
+                            ✗
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {currentQuestion.type === 'text' && currentQuestion.options.length < 6 && (
+                      <button
+                        type="button"
+                        onClick={addOption}
+                        className="add-option-btn"
+                      >
+                        + Add Option
+                      </button>
+                    )}
                   </div>
                 </div>
-                <button 
-                  onClick={() => removeQuestion(index)}
-                  style={{ 
-                    background: 'linear-gradient(135deg, #ef4444, #dc2626)', 
-                    color: 'white', 
-                    border: 'none', 
-                    width: '32px', 
-                    height: '32px', 
-                    borderRadius: '8px', 
-                    cursor: 'pointer', 
-                    fontSize: '16px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center'
-                  }}
-                >
-                  🗑️
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div style={{ 
-          background: 'white', 
-          padding: '25px 30px', 
-          borderRadius: '16px', 
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          display: 'flex', 
-          gap: '15px', 
-          justifyContent: 'flex-end'
-        }}>
-          <button 
-            onClick={onCancel}
-            style={{ 
-              background: '#6b7280', 
-              color: 'white', 
-              border: 'none', 
-              padding: '15px 30px', 
-              borderRadius: '12px', 
-              cursor: 'pointer', 
-              fontWeight: '600',
-              fontSize: '0.95rem'
-            }}
-          >
-            ❌ Cancel
-          </button>
-          <button 
-            onClick={handleSave}
-            style={{ 
-              background: 'linear-gradient(135deg, #10b981, #059669)', 
-              color: 'white', 
-              border: 'none', 
-              padding: '15px 30px', 
-              borderRadius: '12px', 
-              cursor: 'pointer', 
-              fontWeight: '600',
-              fontSize: '0.95rem',
-              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
-            }}
-          >
-            {editForm ? '✅ Update Form' : '✨ Create Form'}
-          </button>
+                <div className="form-actions">
+                  {isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditingIndex(-1);
+                        resetCurrentQuestion();
+                      }}
+                      className="cancel-edit-btn"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={addQuestion}
+                    className="add-question-btn"
+                  >
+                    <span className="btn-icon">{isEditing ? '✓' : '+'}</span>
+                    {isEditing ? 'Update Question' : 'Add Question'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Questions List */}
+          {formData.questions.length > 0 && (
+            <section className="questions-list">
+              <div className="list-card">
+                <h2>Form Questions</h2>
+                <div className="questions-container">
+                  {formData.questions.map((question, index) => (
+                    <div key={question.id} className="question-item">
+                      <div className="question-header">
+                        <div className="question-number">Q{index + 1}</div>
+                        <div className="question-content">
+                          <h4>{question.text}</h4>
+                          <div className="question-meta">
+                            <span className="question-type-badge">
+                              {questionTypes.find(t => t.value === question.type)?.label}
+                            </span>
+                            <span className="options-count">
+                              {question.options.length} options
+                            </span>
+                          </div>
+                        </div>
+                        <div className="question-actions">
+                          <button
+                            onClick={() => editQuestion(index)}
+                            className="edit-btn"
+                            title="Edit Question"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => deleteQuestion(index)}
+                            className="delete-btn"
+                            title="Delete Question"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="question-preview">
+                        <div className="preview-options">
+                          {question.options.slice(0, 3).map((option, optIndex) => (
+                            <span key={optIndex} className="preview-option">
+                              {option}
+                            </span>
+                          ))}
+                          {question.options.length > 3 && (
+                            <span className="more-options">
+                              +{question.options.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
         </div>
       </div>
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="preview-overlay">
+          <div className="preview-modal">
+            <div className="preview-header">
+              <h2>Form Preview</h2>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="close-preview-btn"
+              >
+                ✗
+              </button>
+            </div>
+            
+            <div className="preview-content">
+              <div className="preview-form">
+                <div className="preview-form-header">
+                  <h3>{formData.title || 'Untitled Form'}</h3>
+                  {formData.description && <p>{formData.description}</p>}
+                  <div className="preview-meta">
+                    <span>Course: {formData.course || 'Not selected'}</span>
+                    {formData.dueDate && <span>Due: {formData.dueDate}</span>}
+                  </div>
+                </div>
+                
+                <div className="preview-questions">
+                  {formData.questions.map((question, index) => (
+                    <div key={question.id} className="preview-question">
+                      <h4>
+                        <span className="preview-q-number">Q{index + 1}</span>
+                        {question.text}
+                      </h4>
+                      <div className="preview-question-options">
+                        {question.type === 'rating' && (
+                          <div className="preview-rating">
+                            {question.options.map((option, optIndex) => (
+                              <div key={optIndex} className="preview-rating-option">
+                                <span className="rating-num">{optIndex + 1}</span>
+                                <span className="rating-label">{option.replace(/^\d+\s*-\s*/, '')}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {question.type === 'yesno' && (
+                          <div className="preview-yesno">
+                            {question.options.map((option, optIndex) => (
+                              <div key={optIndex} className="preview-yesno-option">
+                                {option}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {question.type === 'text' && (
+                          <div className="preview-mcq">
+                            {question.options.map((option, optIndex) => (
+                              <div key={optIndex} className="preview-mcq-option">
+                                <span className="option-letter">{String.fromCharCode(65 + optIndex)}</span>
+                                {option}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

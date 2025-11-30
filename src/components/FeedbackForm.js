@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
+import '../styles/FeedbackForm.css';
 
 const FeedbackForm = ({ form, onSubmit, onCancel }) => {
   const [responses, setResponses] = useState({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [showReview, setShowReview] = useState(false);
-  const [error, setError] = useState('');
 
   const handleResponseChange = (questionId, value) => {
-    setError('');
     setResponses(prev => ({
       ...prev,
       [questionId]: value
@@ -15,13 +13,6 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
   };
 
   const handleNext = () => {
-    const currentResp = responses[form.questions[currentQuestion].id];
-    if (currentResp === undefined || currentResp === null || currentResp === '') {
-      setError('Please answer this question before proceeding.');
-      return;
-    }
-    
-    setError('');
     if (currentQuestion < form.questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     }
@@ -34,34 +25,17 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
   };
 
   const handleSubmit = () => {
-    const currentResp = responses[form.questions[currentQuestion].id];
-    if (currentResp === undefined || currentResp === null || currentResp === '') {
-      setError('Please answer this question before submitting.');
-      return;
-    }
-
-    // Check if all questions are answered
     const unansweredQuestions = form.questions.filter(q => {
       const resp = responses[q.id];
       return resp === undefined || resp === null || resp === '';
     });
 
     if (unansweredQuestions.length > 0) {
-      setError(`Please complete all questions. ${unansweredQuestions.length} question(s) remaining.`);
+      alert('Please answer all questions before submitting your feedback.');
       return;
     }
 
-    setError('');
-    setShowReview(true);
-  };
-
-  const confirmSubmit = () => {
-    setShowReview(false);
     onSubmit(form.id, responses);
-  };
-
-  const cancelReview = () => {
-    setShowReview(false);
   };
 
   const renderQuestion = (question) => {
@@ -69,29 +43,33 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
       case 'rating':
         return (
           <div className="rating-options">
-            {[1, 2, 3, 4, 5].map(rating => (
-              <label key={rating} className="rating-option">
-                <input
-                  type="radio"
-                  name={`question-${question.id}`}
-                  value={rating}
-                  checked={responses[question.id] === rating}
-                  onChange={() => handleResponseChange(question.id, rating)}
-                />
-                <span className="rating-number">{rating}</span>
-                <span className="rating-text">
-                  {rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : 'Excellent'}
-                </span>
-              </label>
-            ))}
+            {question.options.map((option, index) => {
+              const numeric = parseInt(option.charAt(0));
+              const label = option.replace(/^\d+\s*-\s*/, '');
+              return (
+                <label key={index} className="rating-option">
+                  <input
+                    type="radio"
+                    name={`question-${question.id}`}
+                    value={numeric}
+                    checked={responses[question.id] === numeric}
+                    onChange={() => handleResponseChange(question.id, numeric)}
+                  />
+                  <div className="rating-button">
+                    <span className="rating-number">{numeric}</span>
+                    <span className="rating-label">{label}</span>
+                  </div>
+                </label>
+              );
+            })}
           </div>
         );
       
       case 'yesno':
         return (
           <div className="yesno-options">
-            {['Yes', 'No'].map(option => (
-              <label key={option} className="yesno-option">
+            {question.options.map((option, index) => (
+              <label key={index} className="yesno-option">
                 <input
                   type="radio"
                   name={`question-${question.id}`}
@@ -99,28 +77,9 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
                   checked={responses[question.id] === option}
                   onChange={() => handleResponseChange(question.id, option)}
                 />
-                <span>{option}</span>
-              </label>
-            ))}
-          </div>
-        );
-      
-      case 'text':
-        return (
-          <div className="rating-options">
-            {[1, 2, 3, 4, 5].map(rating => (
-              <label key={rating} className="rating-option">
-                <input
-                  type="radio"
-                  name={`question-${question.id}`}
-                  value={rating}
-                  checked={responses[question.id] === rating}
-                  onChange={() => handleResponseChange(question.id, rating)}
-                />
-                <span className="rating-number">{rating}</span>
-                <span className="rating-text">
-                  {rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : 'Excellent'}
-                </span>
+                <div className="yesno-button">
+                  <span className="yesno-text">{option}</span>
+                </div>
               </label>
             ))}
           </div>
@@ -138,26 +97,33 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
     <div className="feedback-form-container">
       <div className="feedback-form">
         <header className="form-header">
-          <h2>{form.title}</h2>
-          <p>{form.description}</p>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-          <div className="question-counter">
-            Question {currentQuestion + 1} of {form.questions.length}
+          <h1>{form.title}</h1>
+          <p>Course: {form.course} | Instructor: {form.instructor}</p>
+          
+          <div className="progress-section">
+            <div className="progress-info">
+              <span>Question {currentQuestion + 1} of {form.questions.length}</span>
+              <span>{Math.round(progress)}% Complete</span>
+            </div>
+            <div className="progress-bar">
+              <div 
+                className="progress-fill" 
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
           </div>
         </header>
 
-        <div className="question-section">
-          <h3>{currentQ.text}</h3>
-          {error && <div className="error-message">{error}</div>}
-          {renderQuestion(currentQ)}
-        </div>
+        <main className="question-section">
+          <div className="question-card">
+            <h2>{currentQ.text}</h2>
+            <div className="question-content">
+              {renderQuestion(currentQ)}
+            </div>
+          </div>
+        </main>
 
-        <div className="form-navigation">
+        <footer className="form-navigation">
           <button 
             onClick={onCancel}
             className="cancel-btn"
@@ -179,38 +145,19 @@ const FeedbackForm = ({ form, onSubmit, onCancel }) => {
                 onClick={handleSubmit}
                 className="submit-btn"
               >
-                Review & Submit
+                Submit Feedback
               </button>
             ) : (
               <button 
                 onClick={handleNext}
-                className="nav-btn next"
+                className="nav-btn"
               >
                 Next
               </button>
             )}
           </div>
-        </div>
+        </footer>
       </div>
-      {showReview && (
-        <div className="review-overlay">
-          <div className="review-box">
-            <h3>Review your responses</h3>
-            <div className="review-list">
-              {form.questions.map(q => (
-                <div key={q.id} className="review-row">
-                  <strong>{q.text}</strong>
-                  <div className="review-answer">{(responses[q.id] !== undefined && responses[q.id] !== null) ? String(responses[q.id]) : '—'}</div>
-                </div>
-              ))}
-            </div>
-            <div className="review-actions">
-              <button className="cancel-btn" onClick={cancelReview}>Back</button>
-              <button className="submit-btn" onClick={confirmSubmit}>Confirm & Submit</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
